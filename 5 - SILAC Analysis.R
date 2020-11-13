@@ -74,8 +74,7 @@ vis_miss(protein_tb)
 
 # How can we make it even easier 
 # (i.e. automatically transform all columns that begin with "Intensity")
-# protein_df <- 
-  protein_df %>%
+protein_df <- protein_df %>%
   as_tibble() %>% 
   mutate_at(vars(starts_with("Intensity")), log10) %>% 
   mutate(Intensity.H.M = Intensity.H + Intensity.M,
@@ -111,17 +110,49 @@ glimpse(protein_df)
 #        Ratio.H.M = log2(Ratio.H.M))
 
 # Part 2: Query data using filter() ----
-# Exercise 9.2 (Find protein values) ====
+# Exercise 9.3 (Find protein values) ====
+# get (H/M, M/L) ratios for uniprot:
+
+c("GOGA7", "PSA6", "S10AB")
+
+# 1 - add "_MOUSE" to query, then search
+
+POI <- paste0(c("GOGA7", "PSA6", "S10AB"),'_MOUSE')
+
+protein_tb %>% 
+  filter(Uniprot %in% POI) %>% 
+  select(Uniprot,Ratio.H.M, Ratio.M.L)
+
+# 2 - remove "_MOUSE" from search space, then search
+
+
+# 3 - use pattern matching
+protein_tb %>% 
+  filter(str_detect(Uniprot, "GOGA7|PSA6|S10AB")) %>% 
+  select(Uniprot,Ratio.H.M, Ratio.M.L)
+
+protein_tb %>% 
+  filter(str_detect(Description, "ubiquitin")) %>% 
+  select(Description,Ratio.H.M, Ratio.M.L)
 
 
 
 
-
-# Exercise 9.3 (Find significant hits) and 10.2 ====
+# Exercise 9.4 (Find significant hits) and 10.2 ====
 # For the H/M ratio column, create a new data 
 # frame containing only proteins that have 
 # a p-value less than 0.05
 
+# Using filter, then get the Uniprot, ratios and intensities
+protein_df %>% 
+  filter(Ratio.H.M.Sig < 0.05) %>% 
+  select(Uniprot, Ratio.H.M, Intensity.H.M)
+
+# Using [], have to manually remove the NAs from the data.
+protein_df[protein_df$Ratio.H.M.Sig < 0.05 & !is.na(protein_df$Ratio.H.M.Sig), c("Uniprot", "Ratio.H.M","Intensity.H.M")]
+
+# old school shorthand, rather use filter which works nicely with the tidyverse functions
+# subset(protein_df, Ratio.H.M.Sig < 0.05, select = c("Uniprot", "Ratio.H.M","Intensity.H.M"))
 
 # Exercise 10.4 (Find top 20 values) ==== 
 
