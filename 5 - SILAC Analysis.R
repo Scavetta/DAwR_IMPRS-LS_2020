@@ -24,9 +24,33 @@ tibble(`space (in) name` = 1)
 protein_tb
 
 # Quantify the contaminants ----
+sumofcontaminant <- protein_df %>%
+  filter(Contaminant == "+") %>%
+  count()
+sumofcontaminant$n
 
+protein_df %>% 
+  count(con = Contaminant == "+")
+
+# check those that are +
+sum(protein_df$Contaminant == "+")
+
+# If the non-contaminants are NA:
+# Get the total that are NOT NA:
+sum(!is.na(protein_tb$Contaminant))
 
 # Proportion of contaminants
+# proportion_contaminants_variables <- sumofcontaminant/allnumbersintable
+# proportion_contaminants_variables
+# 0.013
+
+sum(protein_df$Contaminant == "+")/nrow(protein_df)
+
+# Easy way to visualizing NA values:
+library(visdat)
+vis_miss(protein_df)
+vis_miss(protein_tb)
+
 
 # Percentage of contaminants (just multiply proportion by 100)
 
@@ -42,22 +66,49 @@ protein_tb
 
 
 # using tidyverse functions
-protein_df %>% 
-  as_tibble() %>% 
-  mutate(Intensity.L = log10(Intensity.L),
-         Intensity.M = log10(Intensity.M),
-         Intensity.H = log10(Intensity.H))
+# protein_df %>% 
+#   as_tibble() %>% 
+#   mutate(Intensity.L = log10(Intensity.L),
+#          Intensity.M = log10(Intensity.M),
+#          Intensity.H = log10(Intensity.H))
 
 # How can we make it even easier 
 # (i.e. automatically transform all columns that begin with "Intensity")
+# protein_df <- 
+  protein_df %>%
+  as_tibble() %>% 
+  mutate_at(vars(starts_with("Intensity")), log10) %>% 
+  mutate(Intensity.H.M = Intensity.H + Intensity.M,
+         Intensity.M.L = Intensity.M + Intensity.L) %>% 
+  mutate(across(starts_with("Ratio") & !ends_with("Sig"), log2))
+
+glimpse(protein_df)
+
+# This just selects the columns and then transforms:
+# protein_df %>% 
+#   select(starts_with("Intensity")) %>%
+#   log10
 
 
-
-# Add the intensities ==== (M+H, L+M)
+# Add the intensities ==== (H+M, M+L)
 # Add new columns
+# protein_df$Intensity.H.M <- protein_df$Intensity.H + protein_df$Intensity.M
+# protein_df$Intensity.M.L <- protein_df$Intensity.M + protein_df$Intensity.L
+
+
+
 
 # log2 transformations of the ratios ====
-
+# protein_df %>%
+#   as_tibble() %>% 
+#   mutate_at(vars(starts_with("Ratio"), -ends_with("Sig")), log2)
+# 
+#   
+#   mutate(across(starts_with("Ratio") & !ends_with("Sig"), log2))
+# 
+# mutate(Ratio.M.L = log2(Ratio.M.L),
+#        Ratio.H.L = log2(Ratio.H.L),
+#        Ratio.H.M = log2(Ratio.H.M))
 
 # Part 2: Query data using filter() ----
 # Exercise 9.2 (Find protein values) ====
